@@ -1,0 +1,82 @@
+	//三级联动组件结构分为控制器以及指令两部分，调用数据是测试所用的普通json数据，使用时只需要结构正常的json数据格式就能调用，数据来源于父元素所请求的数据，联动原理是根据angular的数据检测原理进行相应的变化
+  myModule.controller('checkCtrl', function($scope) {
+			$scope.cityShow=false;
+			$scope.dstrictShow=false;
+			$scope.$watch('obj', function(newV, oldV) {
+				if(newV) {
+					$scope.regionText = {};
+					$scope.list = [];
+					$scope.citys = [];
+					$scope.districts = [];
+					$scope.$watch('selectedProvince', function(newValue, oldValue) {
+						//debugger;
+						console.log(newValue, oldValue);
+						if(newValue != oldValue) {
+							var i = 0;
+							len = newV.length;
+							if(!newValue) { //判断选择的是否选择第一级，如果没有则重置第二级数据
+								$scope.citys = [];
+								$scope.districts = [];
+								$scope.cityShow=false;
+								$scope.dstrictShow=false;	
+								return;
+							}
+							$scope.cityShow=true;
+								$scope.dstrictShow=false;	
+			$scope.dstrictShow=false;
+							for(i; i < len; i++) {
+								if(newV[i].id == $scope.selectedProvince) {
+									$scope.citys = newV[i].children;
+									$scope.regionText.selectedProvinceText = $scope.obj[i].text;
+								}
+							}
+							$scope.districts = [];
+						}
+					});
+					$scope.$watch('selectedCity', function(newValue, oldValue) {
+						//debugger;				
+						if(newValue != oldValue) {
+							if(!newValue) { //作用同上
+								$scope.districts = [];
+								$scope.dstrictShow=false;	
+								return;					
+							}						
+							var i = 0;		
+			 				$scope.dstrictShow=true;	
+							len = $scope.citys.length;
+							for(i; i < len; i++) {
+								if($scope.citys[i].id == $scope.selectedCity) {
+									$scope.districts = $scope.citys[i].children;
+									$scope.regionText.selectedCityText = $scope.citys[i].text;
+								}
+							}
+						}
+					});
+					$scope.districtObj = {};
+					$scope.$watch('selectedDstrict', function(newValue, oldValue) {
+						if(newValue != oldValue) {
+							var i = 0;
+							len = $scope.districts.length;
+							for(i; i < len; i++) {
+								if($scope.districts[i].id == $scope.selectedDstrict) {
+									$scope.districtObj = $scope.districts[i];
+									$scope.regionText.selectedDstrictText = $scope.districts[i].text;
+								}
+							}
+						}
+					});
+					/*console.log($scope.districtObj,$scope.regionText.selectedDstrictText);
+					console.log($scope.regionText);*/
+				}
+			})
+		})
+		myModule.directive('checkboxlist', function() {
+			return {
+				restrict: 'E',
+				scope: {
+					obj: '='
+				},
+				controller: 'checkCtrl',
+				templateUrl: 'html/checkbox.html'
+			}
+		})
